@@ -1,11 +1,10 @@
 {
-  "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "client/dist",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "source": "/api/:path*",
+      "destination": "https://subhan-care-hms-backend.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
@@ -13,3 +12,4 @@
     }
   ]
 }
+
