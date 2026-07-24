@@ -28,7 +28,15 @@ export function AuthProvider({ children }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-      const data = await res.json();
+      const contentType = res.headers.get("content-type");
+      let data;
+      if (contentType && contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        throw new Error(data?.message || "Server error. Please check backend connection.");
+      }
+
       if (!res.ok) {
         throw new Error(data.message || "Invalid credentials");
       }

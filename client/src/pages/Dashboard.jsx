@@ -28,13 +28,14 @@ export default function Dashboard() {
     async function loadDashboardData() {
       try {
         setLoading(true);
-        // Load KPIs
-        const kpiRes = await authFetch("/api/reports/dashboard-kpis");
-        const kpiData = await kpiRes.json();
-        
-        // Load Audit Logs
-        const logsRes = await authFetch("/api/reports/audit-logs");
-        const logsData = await logsRes.json();
+        const [kpiRes, logsRes] = await Promise.all([
+          authFetch("/api/reports/dashboard-kpis"),
+          authFetch("/api/reports/audit-logs"),
+        ]);
+        const [kpiData, logsData] = await Promise.all([
+          kpiRes.json(),
+          logsRes.json(),
+        ]);
 
         if (kpiRes.ok && kpiData.success) {
           setKpis(kpiData.kpis);

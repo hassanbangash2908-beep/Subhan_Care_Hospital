@@ -18,42 +18,34 @@ router.get("/dashboard-kpis", protect, restrictTo("Admin"), async (req, res) => 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Patients registered today
-    const newPatientsToday = await Patient.countDocuments({
-      createdAt: { $gte: today },
-    });
-
-    // Total patients
-    const totalPatients = await Patient.countDocuments({ status: "Active" });
-
-    // Appointments scheduled today
-    const appointmentsToday = await Appointment.countDocuments({
-      date: { $gte: today },
-      status: "Scheduled",
-    });
-
-    // Total revenue today
-    const invoicesToday = await Invoice.find({
-      createdAt: { $gte: today },
-      status: "Paid",
-    });
-    const revenueToday = invoicesToday.reduce((sum, inv) => sum + inv.totalAmount, 0);
-
-    // Total revenue all-time
-    const allPaidInvoices = await Invoice.find({ status: "Paid" });
-    const totalRevenue = allPaidInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
-
-    // Low stock items count
-    const lowStockCount = await InventoryItem.countDocuments({
-      $expr: { $lte: ["$quantityInStock", "$reorderThreshold"] },
-    });
-
-    // Items nearing expiry (30 days)
     const thirtyDaysFromNow = new Date();
     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-    const nearExpiryCount = await InventoryItem.countDocuments({
-      expiryDate: { $gte: new Date(), $lte: thirtyDaysFromNow },
-    });
+
+    // Run database queries concurrently using Promise.all to drastically reduce response time
+    const [
+      newPatientsToday,
+      totalPatients,
+      appointmentsToday,
+      invoicesToday,
+      allPaidInvoices,
+      lowStockCount,
+      nearExpiryCount,
+    ] = await Promise.all([
+      Patient.countDocuments({ createdAt: { $gte: today } }),
+      Patient.countDocuments({ status: "Active" }),
+      Appointment.countDocuments({ date: { $gte: today }, status: "Scheduled" }),
+      Invoice.find({ createdAt: { $gte: today }, status: "Paid" }).select("totalAmount"),
+      Invoice.find({ status: "Paid" }).select("totalAmount"),
+      InventoryItem.countDocuments({
+        $expr: { $lte: ["$quantityInStock", "$reorderThreshold"] },
+      }),
+      InventoryItem.countDocuments({
+        expiryDate: { $gte: new Date(), $lte: thirtyDaysFromNow },
+      }),
+    ]);
+
+    const revenueToday = invoicesToday.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+    const totalRevenue = allPaidInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
 
     return res.json({
       success: true,
