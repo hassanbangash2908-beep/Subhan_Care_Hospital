@@ -27,7 +27,10 @@ const connectDB = async () => {
     return cachedDb;
   }
   
-  const mongoUri = process.env.MONGO_URI || "mongodb+srv://hassannaryab_db_user:HASSANKHAN12345@cluster0.ke75mvu.mongodb.net/hmsdb?retryWrites=true&w=majority&appName=Cluster0";
+  const mongoUri = process.env.MONGO_URI;
+  if (!mongoUri) {
+    throw new Error("MONGO_URI environment variable is not defined");
+  }
 
   cachedDb = await mongoose.connect(mongoUri, {
     serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of hanging
