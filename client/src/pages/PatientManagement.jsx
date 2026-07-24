@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { Search, UserPlus, FileText, CheckCircle, ShieldAlert } from "lucide-react";
+import { Search, UserPlus, FileText, CheckCircle, ShieldAlert, Tag } from "lucide-react";
 
 export default function PatientManagement() {
   const { authFetch, user } = useAuth();
@@ -24,6 +24,33 @@ export default function PatientManagement() {
   const [allergies, setAllergies] = useState("");
   const [maritalStatus, setMaritalStatus] = useState("Single");
   const [occupation, setOccupation] = useState("");
+
+  // 2.1 CNIC Auto-Formatter Helper
+  const formatCNIC = (value) => {
+    const digits = value.replace(/\D/g, "").slice(0, 13);
+    if (digits.length <= 5) return digits;
+    if (digits.length <= 12) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+    return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
+  };
+
+  const handleCnicChange = (e) => {
+    setCnic(formatCNIC(e.target.value));
+  };
+
+  // 2.3 Allergy Severity Badge Classifier
+  const getAllergyBadge = (allergyStr) => {
+    const lower = allergyStr.toLowerCase();
+    if (lower.includes("severe") || lower.includes("high") || lower.includes("critical")) {
+      return { class: "badge-red", label: "Severe" };
+    }
+    if (lower.includes("moderate") || lower.includes("medium")) {
+      return { class: "badge-warning", label: "Moderate" };
+    }
+    if (lower.includes("mild") || lower.includes("low")) {
+      return { class: "badge-blue", label: "Mild" };
+    }
+    return { class: "badge-purple", label: "" };
+  };
 
   const fetchPatients = async (query = "") => {
     try {
@@ -64,8 +91,13 @@ export default function PatientManagement() {
       return;
     }
 
+    if (!/^\d{5}-\d{7}-\d{1}$/.test(cnic)) {
+      setError("Invalid CNIC Format. Must be 13 digits: XXXXX-XXXXXXX-X");
+      return;
+    }
+
     try {
-      const allergyArray = allergies ? allergies.split(",").map((a) => a.trim()) : [];
+      const allergyArray = allergies ? allergies.split(",").map((a) => a.trim()).filter(Boolean) : [];
       const res = await authFetch("/api/patients", {
         method: "POST",
         body: JSON.stringify({
@@ -138,7 +170,7 @@ export default function PatientManagement() {
                 <Search className="input-icon" size={18} />
                 <input
                   type="text"
-                  placeholder="Search by Patient ID, Name, CNIC, or Contact Number..."
+                  placeholder="Search by Patient ID, Name, CNIC (e.g. 42101-1234567-1), or Contact..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -178,7 +210,7 @@ export default function PatientManagement() {
                   <th>Gender</th>
                   <th>Contact</th>
                   <th>Emergency Contact</th>
-                  <th>Allergies</th>
+                  <th>Allergies & Severity</th>
                 </tr>
               </thead>
               <tbody>
@@ -205,13 +237,20 @@ export default function PatientManagement() {
                           {p.emergencyContactRelationship || "No relationship set"}
                         </div>
                       </td>
-                      <td style={{ maxWidth: "150px" }}>
+                      <td style={{ maxWidth: "200px" }}>
                         {p.allergies && p.allergies.length > 0 ? (
-                          p.allergies.map((a, i) => (
-                            <span key={i} className="pill pill-danger m-1">{a}</span>
-                          ))
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                            {p.allergies.map((a, i) => {
+                              const badgeInfo = getAllergyBadge(a);
+                              return (
+                                <span key={i} className={`badge ${badgeInfo.class}`} style={{ fontSize: "11px" }}>
+                                  {a}
+                                </span>
+                              );
+                            })}
+                          </div>
                         ) : (
-                          <span style={{ opacity: 0.5 }}>None</span>
+                          <span style={{ opacity: 0.5, fontSize: "12px" }}>No Known Allergies</span>
                         )}
                       </td>
                     </tr>
@@ -265,14 +304,18 @@ export default function PatientManagement() {
                 </div>
 
                 <div className="form-group">
-                  <label>CNIC / B-Form Number *</label>
+                  <label>CNIC Number * (Auto-Formatted)</label>
                   <input
                     type="text"
-                    placeholder="e.g. 37405-1234567-1"
+                    placeholder="42101-1234567-1"
                     value={cnic}
-                    onChange={(e) => setCnic(e.target.value)}
+                    onChange={handleCnicChange}
+                    maxLength={15}
                     required
                   />
+                  <small style={{ fontSize: "11px", color: "var(--color-text-muted)" }}>
+                    Format: 13 digits (XXXXX-XXXXXXX-X)
+                  </small>
                 </div>
 
                 <div className="form-group">
@@ -324,19 +367,24 @@ export default function PatientManagement() {
                   </select>
                 </div>
 
-                <div className="form-group">
+                <div className="form-group span-2">
                   <label>Occupation</label>
                   <input type="text" value={occupation} onChange={(e) => setOccupation(e.target.value)} />
                 </div>
 
                 <div className="form-group span-2">
-                  <label>Allergies (comma-separated list)</label>
+                  <label>Allergies (comma-separated with severity tags)</label>
                   <input
                     type="text"
-                    placeholder="e.g. Penicillin, Pollen, Peanuts"
+                    placeholder="e.g. Penicillin (Severe), Dust (Moderate), Pollen (Mild)"
                     value={allergies}
                     onChange={(e) => setAllergies(e.target.value)}
                   />
+                  <div style={{ marginTop: "6px", display: "flex", gap: "8px", flexWrap: "wrap", fontSize: "11px" }}>
+                    <span className="badge badge-red">Red = Severe / High</span>
+                    <span className="badge badge-warning">Yellow = Moderate</span>
+                    <span className="badge badge-blue">Blue = Mild</span>
+                  </div>
                 </div>
 
                 <div className="span-2 flex justify-end gap-2 mt-4">
@@ -351,3 +399,4 @@ export default function PatientManagement() {
     </div>
   );
 }
+
