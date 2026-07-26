@@ -12,12 +12,26 @@ export const getApiUrl = (endpoint) => {
   if (envUrl) {
     return `${envUrl.replace(/\/$/, "")}${endpoint}`;
   }
-  const isLocalhost =
-    typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1");
-  const baseUrl = isLocalhost ? "http://localhost:5000" : "";
-  return `${baseUrl}${endpoint}`;
+  
+  if (typeof window !== "undefined") {
+    const { hostname, port, protocol } = window.location;
+    // Check if developing locally across any IP/hostname/dev port
+    const isDevEnvironment =
+      import.meta.env.DEV ||
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname.startsWith("192.168.") ||
+      hostname.startsWith("10.") ||
+      hostname.endsWith(".local") ||
+      port === "5173" ||
+      port === "3000";
+
+    if (isDevEnvironment) {
+      return `${protocol}//${hostname}:5000${endpoint}`;
+    }
+  }
+
+  return endpoint;
 };
 
 export function AuthProvider({ children }) {
@@ -62,9 +76,9 @@ export function AuthProvider({ children }) {
           throw new Error("Backend server is starting up (Render cold start). Please wait 10-15 seconds and click Sign In again.");
         }
         if (res.status === 404) {
-          throw new Error("Backend API endpoint not found. Please check backend server.");
+          throw new Error(`API endpoint '${targetUrl}' returned 404. Please ensure backend server is running on port 5000.`);
         }
-        throw new Error(`Server error (${res.status}). Please check backend connection.`);
+        throw new Error(`Server error (${res.status}) calling ${targetUrl}. Please check backend server.`);
       }
 
       if (!data.token) {
