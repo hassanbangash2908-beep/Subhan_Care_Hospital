@@ -5,6 +5,8 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 import helloRouter from "./routes/hello.js";
 import authRouter from "./routes/auth.js";
 import patientRouter from "./routes/patients.js";
@@ -16,6 +18,9 @@ import billingRouter from "./routes/billing.js";
 import inventoryRouter from "./routes/inventory.js";
 import reportsRouter from "./routes/reports.js";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, ".env") });
 dotenv.config();
 
 const app = express();

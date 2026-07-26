@@ -52,6 +52,8 @@ router.post("/", protect, restrictTo("Admin", "Billing Staff"), async (req, res)
     console.error("Invoice generate error:", error);
     return res.status(500).json({ success: false, message: "Server error generating invoice" });
   }
+});
+
 function escapeRegex(text) {
   return text ? text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&") : "";
 }
