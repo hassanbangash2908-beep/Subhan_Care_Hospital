@@ -84,11 +84,14 @@ export const connectDB = async () => {
     process.env.MONGO_URI ||
     "mongodb+srv://hassannaryab_db_user:HASSANKHAN12345@cluster0.ke75mvu.mongodb.net/hmsdb?retryWrites=true&w=majority&appName=Cluster0";
   try {
-    await mongoose.connect(mongoUri);
+    await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 5000,
+    });
     isConnected = true;
     console.log("✅ Connected to MongoDB Atlas");
   } catch (err) {
     console.error("❌ MongoDB connection error:", err.message);
+    throw new Error(`Database Connection Error: ${err.message}`);
   }
 };
 
