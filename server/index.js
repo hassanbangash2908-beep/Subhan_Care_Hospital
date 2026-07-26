@@ -30,6 +30,15 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// ─── Health Check Routes ──────────────────────────────────────────────────────
+app.get("/", (req, res) => {
+  res.json({ success: true, message: "Subhan Care HMS Backend API is operational 🚀" });
+});
+
+app.get("/api", (req, res) => {
+  res.json({ success: true, message: "Subhan Care HMS API endpoints operational" });
+});
+
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use("/api", helloRouter);
 app.use("/api/auth", authRouter);
@@ -42,9 +51,8 @@ app.use("/api/billing", billingRouter);
 app.use("/api/inventory", inventoryRouter);
 app.use("/api/reports", reportsRouter);
 
-// ─── Start Server ─────────────────────────────────────────────────────────────
-// 404 Fallback Handler
-app.use("*", (req, res) => {
+// ─── 404 Fallback Handler ─────────────────────────────────────────────────────
+app.use((req, res) => {
   res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` });
 });
 
