@@ -2,6 +2,24 @@ import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
+// Helper to resolve API endpoint URL dynamically
+export const getApiUrl = (endpoint) => {
+  if (!endpoint) return "";
+  if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
+    return endpoint;
+  }
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl) {
+    return `${envUrl.replace(/\/$/, "")}${endpoint}`;
+  }
+  const isLocalhost =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1");
+  const baseUrl = isLocalhost ? "http://localhost:5000" : "";
+  return `${baseUrl}${endpoint}`;
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("hms_token") || null);
@@ -23,7 +41,8 @@ export function AuthProvider({ children }) {
 
   const login = async (username, password) => {
     try {
-      const res = await fetch("/api/auth/login", {
+      const targetUrl = getApiUrl("/api/auth/login");
+      const res = await fetch(targetUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -76,7 +95,8 @@ export function AuthProvider({ children }) {
       headers["Authorization"] = `Bearer ${token}`;
     }
     
-    const res = await fetch(url, {
+    const targetUrl = getApiUrl(url);
+    const res = await fetch(targetUrl, {
       ...options,
       headers: {
         "Content-Type": "application/json",
