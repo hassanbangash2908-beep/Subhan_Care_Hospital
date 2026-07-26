@@ -78,7 +78,11 @@ export function AuthProvider({ children }) {
           throw new Error("Backend server is starting up (Render cold start). Please wait 10-15 seconds and click Sign In again.");
         }
         if (res.status === 404) {
-          throw new Error(`API endpoint '${targetUrl}' returned 404. Please ensure backend server is running on port 5000.`);
+          const isVercel = typeof window !== "undefined" && window.location.hostname.includes("vercel.app");
+          if (isVercel) {
+            throw new Error("Online Vercel deployment: The Render backend service (https://subhan-care-hms-backend.onrender.com) returned 404 / is offline. For local testing, please open http://localhost:5173 in your browser.");
+          }
+          throw new Error(`API endpoint '${targetUrl}' returned 404. Please verify local Express server is running on port 5000.`);
         }
         throw new Error(`Server error (${res.status}) calling ${targetUrl}. Please check backend server.`);
       }
