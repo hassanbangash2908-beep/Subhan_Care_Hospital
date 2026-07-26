@@ -8,29 +8,31 @@ export const getApiUrl = (endpoint) => {
   if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
     return endpoint;
   }
+  
+  // 1. Explicit VITE_API_URL environment variable takes highest precedence
   const envUrl = import.meta.env.VITE_API_URL;
   if (envUrl) {
     return `${envUrl.replace(/\/$/, "")}${endpoint}`;
   }
   
+  // 2. Local environment detection (localhost, 127.0.0.1, 0.0.0.0, 192.168.x.x, 10.x.x.x, 172.x.x.x, etc.)
   if (typeof window !== "undefined") {
-    const { hostname, port, protocol } = window.location;
-    // Check if developing locally across any IP/hostname/dev port
-    const isDevEnvironment =
-      import.meta.env.DEV ||
+    const { hostname, protocol } = window.location;
+    const isLocal =
       hostname === "localhost" ||
       hostname === "127.0.0.1" ||
+      hostname === "0.0.0.0" ||
       hostname.startsWith("192.168.") ||
       hostname.startsWith("10.") ||
-      hostname.endsWith(".local") ||
-      port === "5173" ||
-      port === "3000";
+      hostname.startsWith("172.") ||
+      hostname.endsWith(".local");
 
-    if (isDevEnvironment) {
+    if (isLocal) {
       return `${protocol}//${hostname}:5000${endpoint}`;
     }
   }
 
+  // 3. Fallback for remote production deployment (e.g. Vercel)
   return endpoint;
 };
 
