@@ -1,6 +1,14 @@
 import dns from "dns";
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
-dns.setDefaultResultOrder("ipv4first");
+try {
+  if (typeof dns.setServers === "function") {
+    dns.setServers(["8.8.8.8", "8.8.4.4"]);
+  }
+  if (typeof dns.setDefaultResultOrder === "function") {
+    dns.setDefaultResultOrder("ipv4first");
+  }
+} catch (dnsErr) {
+  console.warn("DNS override skipped in serverless environment:", dnsErr.message);
+}
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
