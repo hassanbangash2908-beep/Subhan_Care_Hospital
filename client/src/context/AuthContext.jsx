@@ -28,26 +28,37 @@ export function AuthProvider({ children }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
+
       const contentType = res.headers.get("content-type");
-      let data;
+      let data = {};
       if (contentType && contentType.includes("application/json")) {
         data = await res.json();
-      } else {
-        const text = await res.text();
-        throw new Error(data?.message || "Server error. Please check backend connection.");
       }
 
       if (!res.ok) {
-        throw new Error(data.message || "Invalid credentials");
+        if (data && data.message) {
+          throw new Error(data.message);
+        }
+        if (res.status === 502 || res.status === 503 || res.status === 504) {
+          throw new Error("Backend server is starting up (Render cold start). Please wait 10-15 seconds and click Sign In again.");
+        }
+        if (res.status === 404) {
+          throw new Error("Backend API endpoint not found. Please check backend server.");
+        }
+        throw new Error(`Server error (${res.status}). Please check backend connection.`);
       }
-      
+
+      if (!data.token) {
+        throw new Error("Authentication failed: No token received from server.");
+      }
+
       localStorage.setItem("hms_token", data.token);
       localStorage.setItem("hms_user", JSON.stringify(data.user));
       setToken(data.token);
       setUser(data.user);
       return { success: true };
     } catch (err) {
-      return { success: false, error: err.message };
+      return { success: false, error: err.message || "Unable to connect to backend server." };
     }
   };
 
