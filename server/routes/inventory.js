@@ -8,6 +8,13 @@ import { logActivity } from "../middleware/audit.js";
 const router = express.Router();
 
 /**
+ * Utility function to escape special characters in regular expressions to prevent crashes/ReDoS.
+ */
+function escapeRegex(text) {
+  return text ? text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&") : "";
+}
+
+/**
  * POST /api/inventory/items
  * Add a new item to pharmacy inventory.
  * Access: Admin, Pharmacist
@@ -73,7 +80,7 @@ router.get("/items", protect, restrictTo("Admin", "Pharmacist"), async (req, res
     let query = {};
 
     if (search) {
-      query.name = { $regex: search, $options: "i" };
+      query.name = { $regex: escapeRegex(search), $options: "i" };
     }
 
     // Filter low stock
@@ -165,10 +172,12 @@ router.post("/prescriptions/:prescriptionId/dispense", protect, restrictTo("Admi
     const lowStockAlerts = [];
 
     for (const med of prescription.medicines) {
-      // Find active inventory item matching name (case insensitive)
-      // Check for non-expired batch with highest stock
+      // Safely escape medicine name for regex lookup to prevent crashes on (500mg) or + characters
+      const escapedMedName = escapeRegex(med.name ? med.name.trim() : "");
+      
+      // Check for active, non-expired batch with available stock
       const inventoryItems = await InventoryItem.find({
-        name: { $regex: new RegExp(`^${med.name}$`, "i") },
+        name: { $regex: new RegExp(`^${escapedMedName}$`, "i") },
         expiryDate: { $gt: new Date() },
         quantityInStock: { $gt: 0 },
       }).sort({ quantityInStock: -1 });
@@ -180,17 +189,14 @@ router.post("/prescriptions/:prescriptionId/dispense", protect, restrictTo("Admi
         });
       }
 
-      // Check cumulative stock in case we need to dispense.
-      // For simplicity, we find the first batch that satisfies the quantity.
-      // Usually, doctor prescribes dosage and days. Let's assume dispensing quantity is 1 batch or a simple count of 1.
-      // We will deduct 1 unit from stock or a standard pack.
+      // Determine quantity to deduct (read med.quantity if specified, otherwise 1)
+      const quantityToDeduct = med.quantity && Number(med.quantity) > 0 ? Number(med.quantity) : 1;
       const batchItem = inventoryItems[0];
-      const quantityToDeduct = 1; // Dispense 1 pack/bottle/strip
 
       if (batchItem.quantityInStock < quantityToDeduct) {
         return res.status(400).json({
           success: false,
-          message: `Dispensing failed: Insufficient stock for '${med.name}' in batch '${batchItem.batchNumber}'. Available: ${batchItem.quantityInStock}`,
+          message: `Dispensing failed: Insufficient stock for '${med.name}' in batch '${batchItem.batchNumber}'. Available: ${batchItem.quantityInStock}, Requested: ${quantityToDeduct}`,
         });
       }
 

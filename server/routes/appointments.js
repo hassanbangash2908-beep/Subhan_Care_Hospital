@@ -26,9 +26,10 @@ router.get("/availability", protect, async (req, res) => {
       return res.status(404).json({ success: false, message: "Active doctor profile not found" });
     }
 
-    // Determine day of the week
-    const targetDate = new Date(date);
-    const dayOfWeek = targetDate.toLocaleDateString("en-US", { weekday: "long" });
+    // Determine day of the week safely in UTC timezone to prevent server location shift errors
+    const dateParts = date.split("-").map(Number);
+    const targetDate = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
+    const dayOfWeek = new Intl.DateTimeFormat("en-US", { weekday: "long", timeZone: "UTC" }).format(targetDate);
 
     // Check if doctor works on this day
     const worksOnDay = doctor.schedule.workingDays.includes(dayOfWeek);
@@ -40,12 +41,9 @@ router.get("/availability", protect, async (req, res) => {
       });
     }
 
-    // Get all scheduled appointments for this doctor on this day
-    // Query range covers the entire day from 00:00 to 23:59:59
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
+    // Get all scheduled appointments for this doctor on this day (UTC day boundary)
+    const startOfDay = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2], 0, 0, 0, 0));
+    const endOfDay = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2], 23, 59, 59, 999));
 
     const bookedAppointments = await Appointment.find({
       doctorId,
@@ -99,11 +97,10 @@ router.post("/", protect, restrictTo("Admin", "Receptionist"), async (req, res) 
     }
 
     // Validate if slot is already booked for this doctor on this day (overlap prevention IR-05)
-    const targetDate = new Date(date);
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
+    const dateParts = date.split("-").map(Number);
+    const targetDate = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
+    const startOfDay = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2], 0, 0, 0, 0));
+    const endOfDay = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2], 23, 59, 59, 999));
 
     const existingAppointment = await Appointment.findOne({
       doctorId,

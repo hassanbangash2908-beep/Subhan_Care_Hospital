@@ -52,7 +52,9 @@ router.post("/", protect, restrictTo("Admin", "Billing Staff"), async (req, res)
     console.error("Invoice generate error:", error);
     return res.status(500).json({ success: false, message: "Server error generating invoice" });
   }
-});
+function escapeRegex(text) {
+  return text ? text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&") : "";
+}
 
 /**
  * GET /api/billing
@@ -67,9 +69,10 @@ router.get("/", protect, restrictTo("Admin", "Billing Staff"), async (req, res) 
     if (status) filter.status = status;
     if (patientId) filter.patientId = patientId;
     if (search) {
+      const safeSearch = escapeRegex(search);
       filter.$or = [
-        { invoiceId: { $regex: search, $options: "i" } },
-        { linkedOriginalInvoiceId: { $regex: search, $options: "i" } },
+        { invoiceId: { $regex: safeSearch, $options: "i" } },
+        { linkedOriginalInvoiceId: { $regex: safeSearch, $options: "i" } },
       ];
     }
 

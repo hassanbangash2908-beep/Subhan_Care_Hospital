@@ -78,6 +78,10 @@ router.post("/", protect, restrictTo("Admin", "Receptionist"), async (req, res) 
   }
 });
 
+function escapeRegex(text) {
+  return text ? text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&") : "";
+}
+
 /**
  * GET /api/patients
  * List, search and filter patients.
@@ -91,15 +95,16 @@ router.get("/", protect, async (req, res) => {
     let filter = { status: "Active" };
 
     if (search) {
+      const safeSearch = escapeRegex(search);
       filter = {
         $and: [
           { status: "Active" },
           {
             $or: [
-              { patientId: { $regex: search, $options: "i" } },
-              { name: { $regex: search, $options: "i" } },
-              { cnic: { $regex: search, $options: "i" } },
-              { contact: { $regex: search, $options: "i" } },
+              { patientId: { $regex: safeSearch, $options: "i" } },
+              { name: { $regex: safeSearch, $options: "i" } },
+              { cnic: { $regex: safeSearch, $options: "i" } },
+              { contact: { $regex: safeSearch, $options: "i" } },
             ],
           },
         ],

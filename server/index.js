@@ -38,6 +38,21 @@ app.use("/api/inventory", inventoryRouter);
 app.use("/api/reports", reportsRouter);
 
 // ─── Start Server ─────────────────────────────────────────────────────────────
+// 404 Fallback Handler
+app.use("*", (req, res) => {
+  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` });
+});
+
+// Global Error Handler Middleware
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+  const status = err.status || err.statusCode || 500;
+  res.status(status).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
+});
+
 app.listen(PORT, () =>
   console.log(`🚀  Server running on http://localhost:${PORT}`)
 );

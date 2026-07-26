@@ -207,11 +207,10 @@ router.post("/forgot-password", async (req, res) => {
       details: "Requested password reset code",
     });
 
-    // In local dev, we return the OTP code directly so developer/tester can reset
+    // Send success response (never leak OTP token in HTTP payload)
     return res.json({
       success: true,
       message: "If a matching email exists, a password reset OTP has been sent.",
-      dev_code: otp, // Back-channel for development verification
     });
   } catch (error) {
     console.error("Forgot password error:", error);
