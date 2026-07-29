@@ -30,9 +30,11 @@ import inventoryRouter from "./routes/inventory.js";
 import reportsRouter from "./routes/reports.js";
 import labtestsRouter from "./routes/labtests.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.join(__dirname, ".env") });
+try {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  dotenv.config({ path: path.join(__dirname, ".env") });
+} catch (envErr) {}
 dotenv.config();
 
 const app = express();
