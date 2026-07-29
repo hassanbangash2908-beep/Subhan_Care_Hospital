@@ -1,7 +1,7 @@
 import express from "express";
 import LabTest from "../models/LabTest.js";
 import Patient from "../models/Patient.js";
-import { protect, authorize } from "../middleware/auth.js";
+import { protect, restrictTo } from "../middleware/auth.js";
 import { logActivity } from "../middleware/audit.js";
 
 const router = express.Router();
@@ -116,7 +116,7 @@ router.put("/:id", protect, async (req, res) => {
 });
 
 // DELETE /api/labtests/:id - Delete test
-router.delete("/:id", protect, authorize("Admin"), async (req, res) => {
+router.delete("/:id", protect, restrictTo("Admin"), async (req, res) => {
   try {
     const labTest = await LabTest.findByIdAndDelete(req.params.id);
     if (!labTest) {
