@@ -26,6 +26,7 @@ import clinicalRouter from "./routes/clinical.js";
 import billingRouter from "./routes/billing.js";
 import inventoryRouter from "./routes/inventory.js";
 import reportsRouter from "./routes/reports.js";
+import labtestsRouter from "./routes/labtests.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,6 +59,7 @@ app.use("/api/clinical", clinicalRouter);
 app.use("/api/billing", billingRouter);
 app.use("/api/inventory", inventoryRouter);
 app.use("/api/reports", reportsRouter);
+app.use("/api/labtests", labtestsRouter);
 
 // ─── 404 Fallback Handler ─────────────────────────────────────────────────────
 app.use((req, res) => {

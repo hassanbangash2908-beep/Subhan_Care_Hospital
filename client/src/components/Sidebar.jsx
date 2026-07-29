@@ -9,6 +9,7 @@ import {
   ClipboardList,
   Receipt,
   Pill,
+  FlaskConical,
   LogOut,
   Menu,
   X,
@@ -36,16 +37,21 @@ export default function Sidebar() {
       { path: "/staff", label: "Staff Directory", icon: Users },
       { path: "/appointments", label: "Appointments", icon: CalendarRange },
       { path: "/clinical", label: "Clinical Queue", icon: ClipboardList },
+      { path: "/diagnostics", label: "Lab Diagnostics", icon: FlaskConical },
       { path: "/billing", label: "Billing / Invoices", icon: Receipt },
       { path: "/pharmacist", label: "Pharmacy Stock", icon: Pill }
     );
   } else if (user.role === "Receptionist") {
     links.push(
       { path: "/patients", label: "Patients", icon: Users },
-      { path: "/appointments", label: "Appointments", icon: CalendarRange }
+      { path: "/appointments", label: "Appointments", icon: CalendarRange },
+      { path: "/diagnostics", label: "Lab Diagnostics", icon: FlaskConical }
     );
   } else if (user.role === "Doctor") {
-    links.push({ path: "/clinical", label: "Clinical Queue", icon: ClipboardList });
+    links.push(
+      { path: "/clinical", label: "Clinical Queue", icon: ClipboardList },
+      { path: "/diagnostics", label: "Lab Diagnostics", icon: FlaskConical }
+    );
   } else if (user.role === "Pharmacist") {
     links.push({ path: "/pharmacist", label: "Pharmacy Stock", icon: Pill });
   } else if (user.role === "Billing Staff") {

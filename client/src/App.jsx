@@ -14,6 +14,7 @@ import AppointmentScheduling from "./pages/AppointmentScheduling";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import PharmacistPortal from "./pages/PharmacistPortal";
 import BillingPortal from "./pages/BillingPortal";
+import LabDiagnostics from "./pages/LabDiagnostics";
 
 /**
  * Route protection wrapper for authenticated pages.
@@ -115,6 +116,14 @@ export default function App() {
             element={
               <ProtectedRoute roles={["Admin", "Doctor"]}>
                 <DoctorDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/diagnostics"
+            element={
+              <ProtectedRoute roles={["Admin", "Doctor", "Receptionist"]}>
+                <LabDiagnostics />
               </ProtectedRoute>
             }
           />

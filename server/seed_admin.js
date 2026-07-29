@@ -1,8 +1,18 @@
+import dns from "dns";
+import path from "path";
+import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import User from "./models/User.js";
 
+try {
+  if (typeof dns.setServers === "function") dns.setServers(["8.8.8.8", "8.8.4.4"]);
+} catch (e) {}
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, ".env") });
 dotenv.config();
 
 async function createAdmin() {
