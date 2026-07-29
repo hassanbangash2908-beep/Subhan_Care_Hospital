@@ -95,7 +95,7 @@ export const connectDB = async () => {
     console.log("✅ Connected to MongoDB Atlas");
   } catch (err) {
     console.error("❌ MongoDB connection error:", err.message);
-    throw new Error(`Database Connection Error: ${err.message}`);
+    // Suppress crash so serverless function can still serve routes
   }
 };
 
