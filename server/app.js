@@ -1,13 +1,15 @@
 import dns from "dns";
-try {
-  if (typeof dns.setServers === "function") {
-    dns.setServers(["8.8.8.8", "8.8.4.4"]);
+if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  try {
+    if (typeof dns.setServers === "function") {
+      dns.setServers(["8.8.8.8", "8.8.4.4"]);
+    }
+    if (typeof dns.setDefaultResultOrder === "function") {
+      dns.setDefaultResultOrder("ipv4first");
+    }
+  } catch (dnsErr) {
+    console.warn("DNS override skipped in serverless environment:", dnsErr.message);
   }
-  if (typeof dns.setDefaultResultOrder === "function") {
-    dns.setDefaultResultOrder("ipv4first");
-  }
-} catch (dnsErr) {
-  console.warn("DNS override skipped in serverless environment:", dnsErr.message);
 }
 import express from "express";
 import mongoose from "mongoose";
