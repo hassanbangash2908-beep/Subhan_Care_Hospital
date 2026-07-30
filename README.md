@@ -14,17 +14,19 @@ A full-stack **MERN** Hospital Management System built for Subhan Care. Covers p
 - 👨‍⚕️ Doctor Profiles & Availability Scheduling
 - 📅 Appointment Booking (with conflict prevention)
 - 🩺 Clinical Consultations & Prescriptions
+- 🧪 Lab Diagnostics & Test Orders
 - 💊 Pharmacy Inventory & Auto Stock Deduction
 - 🧾 Billing, Invoicing & Credit Notes
-- 📊 Admin KPI Dashboard & Audit Logs
-- 📱 Mobile Responsive UI
+- 📊 Admin KPI Dashboard, Analytics Charts & Audit Logs
+- 📄 PDF Export & Document Generation
+- 📱 Mobile Responsive Modern UI
 
 ## Getting Started
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/<your-username>/HMS.git
-cd HMS
+git clone https://github.com/hassanbangash2908-beep/Subhan_Care_Hospital.git
+cd Subhan_Care_Hospital
 ```
 
 ### 2. Setup Backend
