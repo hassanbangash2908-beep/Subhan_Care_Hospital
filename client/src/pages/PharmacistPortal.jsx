@@ -27,29 +27,28 @@ export default function PharmacistPortal() {
       setLoadingRx(true);
       setLoadingInv(true);
 
-      // Load pending prescriptions
-      const rxRes = await authFetch("/api/clinical/prescriptions?status=Pending");
-      const rxData = await rxRes.json();
-      if (rxRes.ok && rxData.success) {
-        setPrescriptions(rxData.prescriptions);
+      const [rxRes, invRes, supRes] = await Promise.all([
+        authFetch("/api/clinical/prescriptions?status=Pending"),
+        authFetch("/api/inventory/items"),
+        authFetch("/api/inventory/suppliers"),
+      ]);
+
+      if (rxRes && rxRes.ok) {
+        const rxData = await rxRes.json();
+        if (rxData.success) setPrescriptions(rxData.prescriptions);
       }
 
-      // Load inventory
-      const invRes = await authFetch("/api/inventory/items");
-      const invData = await invRes.json();
-      if (invRes.ok && invData.success) {
-        setInventory(invData.items);
+      if (invRes && invRes.ok) {
+        const invData = await invRes.json();
+        if (invData.success) setInventory(invData.items);
       }
 
-      // Load suppliers
-      const supRes = await authFetch("/api/inventory/suppliers");
-      const supData = await supRes.json();
-      if (supRes.ok && supData.success) {
-        setSuppliers(supData.suppliers);
+      if (supRes && supRes.ok) {
+        const supData = await supRes.json();
+        if (supData.success) setSuppliers(supData.suppliers);
       }
-
     } catch (err) {
-      console.error(err);
+      console.error("Pharmacist load data error:", err);
     } finally {
       setLoadingRx(false);
       setLoadingInv(false);

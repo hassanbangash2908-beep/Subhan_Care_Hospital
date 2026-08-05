@@ -37,23 +37,25 @@ export default function AppointmentScheduling() {
   const [loadingRescheduleSlots, setLoadingRescheduleSlots] = useState(false);
   const [rescheduleError, setRescheduleError] = useState("");
 
-  // Load doctors and appointments
   const loadInitialData = async () => {
     try {
       setLoadingList(true);
-      const docRes = await authFetch("/api/doctors");
-      const docData = await docRes.json();
-      if (docRes.ok && docData.success) {
-        setDoctors(docData.doctors);
+      const [docRes, appRes] = await Promise.all([
+        authFetch("/api/doctors"),
+        authFetch("/api/appointments"),
+      ]);
+
+      if (docRes && docRes.ok) {
+        const docData = await docRes.json();
+        if (docData.success) setDoctors(docData.doctors);
       }
 
-      const appRes = await authFetch("/api/appointments");
-      const appData = await appRes.json();
-      if (appRes.ok && appData.success) {
-        setAppointments(appData.appointments);
+      if (appRes && appRes.ok) {
+        const appData = await appRes.json();
+        if (appData.success) setAppointments(appData.appointments);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Appointment load error:", err);
     } finally {
       setLoadingList(false);
     }

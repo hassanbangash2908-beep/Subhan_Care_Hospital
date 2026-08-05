@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     host: true,         // expose on all network interfaces (0.0.0.0)
     port: 5173,
+    allowedHosts: true, // Allow custom local domains like app.subhancare.com
     proxy: {
       // Proxy /api requests to the Express server during development
       "/api": {

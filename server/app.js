@@ -1,16 +1,12 @@
 import dns from "dns";
-if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
-  try {
-    if (typeof dns.setServers === "function") {
-      dns.setServers(["8.8.8.8", "8.8.4.4"]);
-    }
-    if (typeof dns.setDefaultResultOrder === "function") {
-      dns.setDefaultResultOrder("ipv4first");
-    }
-  } catch (dnsErr) {
-    console.warn("DNS override skipped in serverless environment:", dnsErr.message);
+try {
+  if (typeof dns.setServers === "function") {
+    dns.setServers(["8.8.8.8", "1.1.1.1"]);
   }
-}
+  if (typeof dns.setDefaultResultOrder === "function") {
+    dns.setDefaultResultOrder("ipv4first");
+  }
+} catch (dnsErr) {}
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
@@ -92,6 +88,10 @@ export const connectDB = async () => {
   try {
     await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      minPoolSize: 2,
     });
     isConnected = true;
     console.log("✅ Connected to MongoDB Atlas");

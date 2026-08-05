@@ -72,6 +72,10 @@ const patientSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+patientSchema.index({ status: 1 });
+patientSchema.index({ createdAt: -1 });
+patientSchema.index({ name: 1, cnic: 1 });
+
 // Pre-save hook to auto-generate patientId (format: SC-PAT-#####)
 patientSchema.pre("save", async function (next) {
   if (this.isNew && !this.patientId) {

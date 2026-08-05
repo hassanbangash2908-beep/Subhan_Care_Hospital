@@ -42,6 +42,10 @@ const appointmentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+appointmentSchema.index({ date: 1, status: 1 });
+appointmentSchema.index({ doctorId: 1, status: 1 });
+appointmentSchema.index({ patientId: 1 });
+
 // Pre-save hook to auto-generate appointmentId (format: SC-APT-#####)
 appointmentSchema.pre("save", async function (next) {
   if (this.isNew && !this.appointmentId) {

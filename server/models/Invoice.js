@@ -56,6 +56,10 @@ const invoiceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+invoiceSchema.index({ status: 1 });
+invoiceSchema.index({ createdAt: -1 });
+invoiceSchema.index({ patientId: 1 });
+
 // Pre-save hook to auto-generate invoiceId (format: SC-INV-#####)
 invoiceSchema.pre("save", async function (next) {
   if (this.isNew && !this.invoiceId) {

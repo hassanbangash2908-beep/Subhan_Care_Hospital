@@ -30,28 +30,29 @@ export default function Dashboard() {
         setLoading(true);
         setError("");
 
-        try {
-          const kpiRes = await authFetch("/api/reports/dashboard-kpis");
-          if (kpiRes.ok) {
-            const kpiData = await kpiRes.json();
-            if (kpiData.success && kpiData.kpis) {
-              setKpis(kpiData.kpis);
-            }
+        const [kpiRes, logsRes] = await Promise.all([
+          authFetch("/api/reports/dashboard-kpis").catch((err) => {
+            console.error("KPI fetch error:", err);
+            return null;
+          }),
+          authFetch("/api/reports/audit-logs").catch((err) => {
+            console.error("Audit log fetch error:", err);
+            return null;
+          }),
+        ]);
+
+        if (kpiRes && kpiRes.ok) {
+          const kpiData = await kpiRes.json();
+          if (kpiData.success && kpiData.kpis) {
+            setKpis(kpiData.kpis);
           }
-        } catch (kpiErr) {
-          console.error("KPI fetch error:", kpiErr);
         }
 
-        try {
-          const logsRes = await authFetch("/api/reports/audit-logs");
-          if (logsRes.ok) {
-            const logsData = await logsRes.json();
-            if (logsData.success && logsData.logs) {
-              setLogs(logsData.logs);
-            }
+        if (logsRes && logsRes.ok) {
+          const logsData = await logsRes.json();
+          if (logsData.success && logsData.logs) {
+            setLogs(logsData.logs);
           }
-        } catch (logsErr) {
-          console.error("Audit log fetch error:", logsErr);
         }
       } catch (err) {
         console.error("Dashboard error:", err);

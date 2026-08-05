@@ -33,6 +33,8 @@ const auditLogSchema = new mongoose.Schema({
   },
 });
 
+auditLogSchema.index({ timestamp: -1 });
+
 // Avoid index modification/deletion checks
 const AuditLog = mongoose.model("AuditLog", auditLogSchema);
 export default AuditLog;
