@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { Receipt, Search, Plus, Printer, CheckCircle, ShieldAlert, CreditCard, X } from "lucide-react";
+import { Receipt, Search, Plus, Printer, CheckCircle, ShieldAlert, CreditCard, X, Check, FileText } from "lucide-react";
 
 export default function BillingPortal() {
   const { authFetch } = useAuth();
@@ -46,7 +46,7 @@ export default function BillingPortal() {
 
   // Search Patients
   const handlePatientSearch = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!patientSearch) return;
     try {
       const res = await authFetch(`/api/patients?search=${encodeURIComponent(patientSearch)}`);
@@ -172,7 +172,6 @@ export default function BillingPortal() {
     }
   };
 
-  // Browser Print trigger
   const handlePrintReceipt = () => {
     window.print();
   };
@@ -181,8 +180,8 @@ export default function BillingPortal() {
     <div className="billing-page">
       <div className="page-header-row hide-print">
         <div>
-          <h1>Billing & Invoicing Portal</h1>
-          <p className="subtitle">Compile service charges, process cash/card collections, and issue reversals</p>
+          <h1>Billing & Financial Invoicing Suite</h1>
+          <p className="subtitle">Compile service charges, track payment stages, & manage credit note refunds</p>
         </div>
 
         <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
@@ -193,12 +192,32 @@ export default function BillingPortal() {
       {success && <div className="alert alert-success mb-4 hide-print">{success}</div>}
       {error && <div className="alert alert-danger mb-4 hide-print">{error}</div>}
 
+      {/* Payment Progress Stage Indicator for Active Invoice */}
+      {activeInvoice && (
+        <div className="progress-tracker hide-print">
+          <div className={`tracker-step ${activeInvoice ? "completed" : ""}`}>
+            <div className="tracker-dot"><Check size={12} /></div>
+            <span>Invoice Compiled</span>
+          </div>
+          <div className={`tracker-connector ${activeInvoice.status === "Paid" ? "filled" : ""}`} />
+          <div className={`tracker-step ${activeInvoice.status === "Paid" ? "completed" : "current"}`}>
+            <div className="tracker-dot">{activeInvoice.status === "Paid" ? <Check size={12} /> : "2"}</div>
+            <span>Insurance Claim / Verification</span>
+          </div>
+          <div className={`tracker-connector ${activeInvoice.status === "Paid" ? "filled" : ""}`} />
+          <div className={`tracker-step ${activeInvoice.status === "Paid" ? "completed" : ""}`}>
+            <div className="tracker-dot">{activeInvoice.status === "Paid" ? <Check size={12} /> : "3"}</div>
+            <span>Payment Collected</span>
+          </div>
+        </div>
+      )}
+
       <div className="billing-split mt-2">
         {/* Invoices List Panel */}
         <div className="card list-card hide-print">
           <div className="card-header">
             <div className="card-title">
-              <Receipt className="icon-purple" size={20} /> Transaction Ledger
+              <Receipt className="icon-purple" size={20} /> Transaction Ledger ({invoices.length})
             </div>
           </div>
           <div className="card-body scroll-panel">
@@ -243,7 +262,7 @@ export default function BillingPortal() {
                           Rs. {inv.totalAmount}
                         </strong>
                       </td>
-                      <td><span className="pill pill-info">{inv.paymentMethod}</span></td>
+                      <td><span className="badge badge-purple">{inv.paymentMethod}</span></td>
                       <td>
                         <span className={`badge ${
                           inv.status === "Paid" ? "badge-success" :
@@ -278,7 +297,7 @@ export default function BillingPortal() {
           <div className="card receipt-panel">
             <div className="card-header hide-print">
               <div className="card-title">
-                <Printer className="icon-purple" size={20} /> Receipt Preview
+                <Printer className="icon-purple" size={20} /> Printable Receipt View
               </div>
               <button className="btn btn-muted btn-sm" onClick={() => setActiveInvoice(null)}>
                 <X size={16} />
@@ -286,7 +305,6 @@ export default function BillingPortal() {
             </div>
             
             <div className="card-body print-section">
-              {/* Receipt Layout */}
               <div className="receipt-box-layout">
                 <div className="receipt-header">
                   <h3>SUBHAN CARE CLINICS</h3>
@@ -378,7 +396,7 @@ export default function BillingPortal() {
         <div className="modal-overlay">
           <div className="modal-card max-w-xl">
             <div className="modal-header">
-              <h2>Compile Service invoice</h2>
+              <h2>Compile Service Invoice</h2>
               <button className="modal-close-btn" onClick={() => setShowCreateModal(false)}>×</button>
             </div>
 
@@ -501,7 +519,7 @@ export default function BillingPortal() {
                   onClick={handleCreateInvoiceSubmit}
                   disabled={!selectedPatient}
                 >
-                  Generate invoice
+                  Generate Invoice
                 </button>
               </div>
             </div>
@@ -511,3 +529,4 @@ export default function BillingPortal() {
     </div>
   );
 }
+

@@ -1,14 +1,18 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { UserCheck, CheckCircle, ShieldAlert, Plus, Trash } from "lucide-react";
+import { UserCheck, CheckCircle, ShieldAlert, Plus, Trash, Star, Search, Filter, Calendar, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function DoctorManagement() {
   const { authFetch, user } = useAuth();
+  const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [search, setSearch] = useState("");
+  const [selectedSpecialty, setSelectedSpecialty] = useState("All");
 
   // Doctor Form State
   const [name, setName] = useState("");
@@ -97,7 +101,6 @@ export default function DoctorManagement() {
       const data = await res.json();
       if (res.ok && data.success) {
         setSuccess(`Doctor profile created successfully! ID: ${data.doctor.doctorId}`);
-        // Reset fields
         setName("");
         setSpecialization("");
         setLicenseNumber("");
@@ -118,14 +121,25 @@ export default function DoctorManagement() {
     }
   };
 
+  const specialties = ["All", ...new Set(doctors.map((d) => d.specialization).filter(Boolean))];
+
+  const filteredDoctors = doctors.filter((doc) => {
+    const matchesSearch =
+      doc.name.toLowerCase().includes(search.toLowerCase()) ||
+      doc.specialization.toLowerCase().includes(search.toLowerCase()) ||
+      (doc.licenseNumber && doc.licenseNumber.toLowerCase().includes(search.toLowerCase()));
+    const matchesSpec = selectedSpecialty === "All" || doc.specialization === selectedSpecialty;
+    return matchesSearch && matchesSpec;
+  });
+
   const isAdmin = user && user.role === "Admin";
 
   return (
     <div className="doctors-page">
       <div className="page-header-row">
         <div>
-          <h1>Doctor Directory</h1>
-          <p className="subtitle">Clinical staff specialities and availability schedules</p>
+          <h1>Doctor Directory & Practitioner Profiles</h1>
+          <p className="subtitle">Clinical staff specialities, fee structures, and timetable availability</p>
         </div>
 
         {isAdmin && (
@@ -135,69 +149,105 @@ export default function DoctorManagement() {
         )}
       </div>
 
-      <div className="card">
-        <div className="card-header">
-          <div className="card-title">
-            <UserCheck className="icon-purple" size={20} /> Active Practitioners
+      {/* Filter & Search Header Bar */}
+      <div className="card mb-4">
+        <div className="card-body">
+          <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "center" }}>
+            <div className="input-with-icon flex-1" style={{ minWidth: "260px" }}>
+              <Search className="input-icon" size={18} />
+              <input
+                type="text"
+                placeholder="Search by Doctor Name, License #, or Department..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+
+            <div style={{ display: "flex", gap: "6px", overflowX: "auto" }}>
+              {specialties.map((spec) => (
+                <button
+                  key={spec}
+                  className={`btn btn-sm ${selectedSpecialty === spec ? "btn-primary" : "btn-muted"}`}
+                  style={{ fontSize: "11px", padding: "6px 12px", whiteSpace: "nowrap" }}
+                  onClick={() => setSelectedSpecialty(spec)}
+                >
+                  {spec}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-
-        <div className="card-body scroll-panel">
-          {loading ? (
-            <div className="page-loading">
-              <span className="spinner" /> Loading list...
-            </div>
-          ) : doctors.length === 0 ? (
-            <div className="idle-state">
-              <p>No doctor profiles created yet.</p>
-            </div>
-          ) : (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Doctor ID</th>
-                  <th>Practitioner Name</th>
-                  <th>License Code</th>
-                  <th>Speciality</th>
-                  <th>Consultation Fee</th>
-                  <th>Working Days</th>
-                  <th>Time Slots</th>
-                  <th>Contact Info</th>
-                </tr>
-              </thead>
-              <tbody>
-                {doctors.map((d) => (
-                  <tr key={d._id}>
-                    <td><strong className="text-purple">{d.doctorId}</strong></td>
-                    <td><strong>{d.name}</strong></td>
-                    <td><code>{d.licenseNumber}</code></td>
-                    <td><span className="badge badge-purple">{d.specialization}</span></td>
-                    <td><strong>Rs. {d.consultationFee}</strong></td>
-                    <td>
-                      <div className="flex flex-wrap gap-1">
-                        {d.schedule.workingDays.map((day, idx) => (
-                          <span key={idx} className="pill pill-success m-1">{day.slice(0, 3)}</span>
-                        ))}
-                      </div>
-                    </td>
-                    <td style={{ maxWidth: "250px" }}>
-                      <div className="flex flex-wrap gap-1">
-                        {d.schedule.timeSlots.slice(0, 3).map((slot, idx) => (
-                          <span key={idx} className="pill pill-info m-1">{slot}</span>
-                        ))}
-                        {d.schedule.timeSlots.length > 3 && (
-                          <span className="pill pill-muted m-1">+{d.schedule.timeSlots.length - 3} more</span>
-                        )}
-                      </div>
-                    </td>
-                    <td>{d.contactInfo}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
       </div>
+
+      {/* Doctor Cards Grid */}
+      {loading ? (
+        <div className="page-loading">
+          <span className="spinner" /> Loading doctor profiles...
+        </div>
+      ) : filteredDoctors.length === 0 ? (
+        <div className="idle-state">
+          <p>No doctor profiles found matching the query.</p>
+        </div>
+      ) : (
+        <div className="doctor-card-grid">
+          {filteredDoctors.map((doc) => (
+            <div key={doc._id} className="doctor-card">
+              <div className="doctor-card-header">
+                <div className="doctor-avatar-circle">
+                  {doc.name.replace("Dr. ", "")[0]}
+                </div>
+                <div className="doctor-card-info">
+                  <h4>{doc.name}</h4>
+                  <span className="specialty-pill">{doc.specialization}</span>
+                  <div style={{ fontSize: "11px", color: "var(--color-text-muted)", marginTop: "2px" }}>
+                    License: {doc.licenseNumber}
+                  </div>
+                </div>
+              </div>
+
+              <div className="doctor-card-stats">
+                <div>
+                  <span style={{ color: "var(--color-text-muted)" }}>Fee:</span>{" "}
+                  <strong style={{ color: "#10b981" }}>Rs. {doc.consultationFee}</strong>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "4px", color: "#f59e0b" }}>
+                  <Star size={14} fill="#f59e0b" />
+                  <strong>4.9</strong>
+                  <span style={{ fontSize: "10px", color: "#94a3b8" }}>(120+ reviews)</span>
+                </div>
+              </div>
+
+              {/* Working Days Badges */}
+              <div>
+                <div style={{ fontSize: "11px", fontWeight: "600", color: "var(--color-text-muted)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "4px" }}>
+                  <Calendar size={12} /> Schedule Days:
+                </div>
+                <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                  {doc.schedule?.workingDays && doc.schedule.workingDays.length > 0 ? (
+                    doc.schedule.workingDays.map((d) => (
+                      <span key={d} className="badge badge-purple" style={{ fontSize: "10px" }}>
+                        {d.slice(0, 3)}
+                      </span>
+                    ))
+                  ) : (
+                    <span style={{ fontSize: "11px", opacity: 0.5 }}>Daily Availability</span>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "8px", marginTop: "auto", paddingTop: "10px" }}>
+                <button
+                  className="btn btn-primary flex-1"
+                  style={{ fontSize: "12px", padding: "8px" }}
+                  onClick={() => navigate("/appointments")}
+                >
+                  <Clock size={14} style={{ marginRight: "4px" }} /> Book Slot
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Registration Modal */}
       {showModal && (
@@ -222,15 +272,15 @@ export default function DoctorManagement() {
 
               <form onSubmit={handleSubmit} className="grid-form">
                 <div className="form-group span-2">
-                  <label>Full Name *</label>
+                  <label>Doctor Full Name * (e.g. Dr. Salman Khan)</label>
                   <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
                 </div>
 
                 <div className="form-group">
-                  <label>Specialization *</label>
+                  <label>Specialization / Department *</label>
                   <input
                     type="text"
-                    placeholder="e.g. Cardiologist, General Physician"
+                    placeholder="e.g. Cardiology, Pediatrics, Orthopedics"
                     value={specialization}
                     onChange={(e) => setSpecialization(e.target.value)}
                     required
@@ -238,18 +288,12 @@ export default function DoctorManagement() {
                 </div>
 
                 <div className="form-group">
-                  <label>Medical License Code *</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. PMDC-12345-D"
-                    value={licenseNumber}
-                    onChange={(e) => setLicenseNumber(e.target.value)}
-                    required
-                  />
+                  <label>Medical License Number *</label>
+                  <input type="text" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} required />
                 </div>
 
                 <div className="form-group">
-                  <label>Contact Details *</label>
+                  <label>Contact Info / Email *</label>
                   <input type="text" value={contactInfo} onChange={(e) => setContactInfo(e.target.value)} required />
                 </div>
 
@@ -263,18 +307,17 @@ export default function DoctorManagement() {
                   />
                 </div>
 
-                {/* Working Days Checkboxes */}
+                {/* Working Days */}
                 <div className="form-group span-2">
-                  <label>Config Working Days *</label>
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <label>Working Days *</label>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "4px" }}>
                     {daysOfWeek.map((day) => {
-                      const isChecked = selectedDays.includes(day);
+                      const isSelected = selectedDays.includes(day);
                       return (
                         <button
                           key={day}
                           type="button"
-                          className={`btn ${isChecked ? "btn-primary" : "btn-muted"}`}
-                          style={{ padding: "6px 12px", fontSize: "12px" }}
+                          className={`btn btn-sm ${isSelected ? "btn-primary" : "btn-secondary"}`}
                           onClick={() => handleDayToggle(day)}
                         >
                           {day}
@@ -284,37 +327,9 @@ export default function DoctorManagement() {
                   </div>
                 </div>
 
-                {/* Time Slots Config */}
-                <div className="form-group span-2">
-                  <label>Configure Consultation Time Slots</label>
-                  <div className="flex gap-2 mt-2">
-                    <input
-                      type="text"
-                      placeholder="e.g. 14:00 - 14:30"
-                      value={newSlot}
-                      onChange={(e) => setNewSlot(e.target.value)}
-                    />
-                    <button type="button" className="btn btn-secondary" onClick={handleAddSlot}>
-                      Add Slot
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-3" style={{ maxHeight: "120px", overflowY: "auto", border: "1px solid rgba(255,255,255,0.08)", padding: "10px", borderRadius: "8px" }}>
-                    {timeSlots.map((slot) => (
-                      <span key={slot} className="pill pill-info m-1 flex items-center gap-1">
-                        {slot}
-                        <Trash
-                          size={12}
-                          className="cursor-pointer text-red-400 hover:text-red-600"
-                          onClick={() => handleRemoveSlot(slot)}
-                        />
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
                 <div className="span-2 flex justify-end gap-2 mt-4">
                   <button type="button" className="btn btn-muted" onClick={() => setShowModal(false)}>Cancel</button>
-                  <button type="submit" className="btn btn-primary">Create Doctor Profile</button>
+                  <button type="submit" className="btn btn-primary">Create Profile</button>
                 </div>
               </form>
             </div>
