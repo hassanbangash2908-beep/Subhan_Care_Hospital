@@ -15,7 +15,8 @@ import {
   Lock,
   ArrowRight,
   Stethoscope,
-  Pill
+  Pill,
+  BadgePercent
 } from "lucide-react";
 
 export default function Login() {
@@ -58,7 +59,7 @@ export default function Login() {
 
   return (
     <div className="auth-page-wrapper">
-      {/* Background ambient lighting effects */}
+      {/* Ambient medical glow lights */}
       <div className="auth-bg-glow glow-top-left" />
       <div className="auth-bg-glow glow-bottom-right" />
       <div className="auth-grid-pattern" />
@@ -74,20 +75,20 @@ export default function Login() {
           <div className="auth-hero-content">
             <div className="auth-brand-logo">
               <div className="brand-logo-icon">
-                <Hospital size={32} />
+                <Hospital size={34} />
               </div>
               <div className="brand-logo-sparkle">
-                <Activity size={18} />
+                <Activity size={20} />
               </div>
             </div>
 
             <h1 className="auth-hero-title">
-              Advanced Hospital <br />
-              <span className="text-gradient">Management System</span>
+              Subhan Care Clinical <br />
+              <span className="text-gradient">Operational Suite</span>
             </h1>
 
             <p className="auth-hero-description">
-              Secure digital workspace for healthcare professionals, streamlining clinical workflows, patient management, and pharmacy operations.
+              Enterprise digital health platform streamlining OPD triage, Electronic Health Records (EHR), conflict-free scheduling, & automated billing.
             </p>
 
             <div className="auth-features-list">
@@ -96,8 +97,8 @@ export default function Login() {
                   <ShieldCheck size={18} />
                 </div>
                 <div>
-                  <h4>HIPAA & ISO Compliant Security</h4>
-                  <p>Encrypted health record access & strict role control</p>
+                  <h4>Role-Based Access & Audit Compliance</h4>
+                  <p>Encrypted clinical records with tamper-evident audit logging</p>
                 </div>
               </div>
 
@@ -106,17 +107,17 @@ export default function Login() {
                   <Activity size={18} />
                 </div>
                 <div>
-                  <h4>Real-time OPD & Emergency Monitoring</h4>
-                  <p>Instant bed management, triage & vitals telemetry</p>
+                  <h4>Real-time OPD & Emergency Telemetry</h4>
+                  <p>Instant bed management, triage queues & patient vitals monitor</p>
                 </div>
               </div>
             </div>
 
-            {/* Quick Demo Credentials Assistant */}
+            {/* Quick Demo Accounts Selection */}
             <div className="demo-credentials-box">
               <div className="demo-box-header">
-                <Sparkles size={14} className="text-primary-light" />
-                <span>Quick Fill Test Accounts</span>
+                <Sparkles size={14} style={{ color: "#38bdf8" }} />
+                <span>Select Demo Account to Test:</span>
               </div>
               <div className="demo-pills">
                 <button 
@@ -149,18 +150,18 @@ export default function Login() {
 
           <div className="auth-hero-footer">
             <div className="system-status">
-              <CheckCircle2 size={15} className="text-success" />
-              <span>System operational — v2.4 Enterprise</span>
+              <CheckCircle2 size={15} style={{ color: "#10b981" }} />
+              <span>System operational — Enterprise Edition</span>
             </div>
           </div>
         </div>
 
-        {/* Right Side: Professional Sign In Form Card */}
+        {/* Right Side: Sign In Form Card */}
         <div className="auth-form-section">
           <div className="auth-card-modern">
             <div className="auth-card-header">
               <div className="mobile-brand">
-                <Hospital size={26} className="text-primary-light" />
+                <Hospital size={26} style={{ color: "#38bdf8" }} />
                 <span>Subhan Care HMS</span>
               </div>
               <h2>Portal Sign In</h2>
@@ -254,7 +255,7 @@ export default function Login() {
 
             <div className="auth-card-footer">
               <div className="security-notice">
-                <ShieldCheck size={14} className="text-primary-light" />
+                <ShieldCheck size={14} style={{ color: "#38bdf8" }} />
                 <span>Restricted Access: Authorized Subhan Care Personnel Only</span>
               </div>
               <p className="copyright-text">
@@ -267,4 +268,5 @@ export default function Login() {
     </div>
   );
 }
+
 

@@ -10,6 +10,7 @@ import {
   Receipt,
   Pill,
   FlaskConical,
+  Settings,
   LogOut,
   Menu,
   X,
@@ -39,7 +40,8 @@ export default function Sidebar() {
       { path: "/clinical", label: "Clinical Queue", icon: ClipboardList },
       { path: "/diagnostics", label: "Lab Diagnostics", icon: FlaskConical },
       { path: "/billing", label: "Billing / Invoices", icon: Receipt },
-      { path: "/pharmacist", label: "Pharmacy Stock", icon: Pill }
+      { path: "/pharmacist", label: "Pharmacy Stock", icon: Pill },
+      { path: "/settings", label: "Admin Settings", icon: Settings }
     );
   } else if (user.role === "Receptionist") {
     links.push(

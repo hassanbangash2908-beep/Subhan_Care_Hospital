@@ -15,6 +15,7 @@ import DoctorDashboard from "./pages/DoctorDashboard";
 import PharmacistPortal from "./pages/PharmacistPortal";
 import BillingPortal from "./pages/BillingPortal";
 import LabDiagnostics from "./pages/LabDiagnostics";
+import Settings from "./pages/Settings";
 
 /**
  * Route protection wrapper for authenticated pages.
@@ -140,6 +141,14 @@ export default function App() {
             element={
               <ProtectedRoute roles={["Admin", "Billing Staff"]}>
                 <BillingPortal />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute roles={["Admin"]}>
+                <Settings />
               </ProtectedRoute>
             }
           />
